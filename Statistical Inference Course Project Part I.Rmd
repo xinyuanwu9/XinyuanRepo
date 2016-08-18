@@ -1,0 +1,78 @@
+---
+title: "Statistical Inference Course Project Part I"
+author: "Xinyuan Wu"
+date: "August 17, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+In this section, the topic is to simulate exponential distributions. Each simulation contains 40 samples, and we are going to simulate 1000 times. Based on the simulation results, our goal is to compare the simulated mean vs. theoretical mean, and simulated variance vs. theoretical variance.
+
+## Simulations
+
+Given that the rate of the exponential distribution is 0.2, we can therefore perform this simulation.
+
+```{r}
+rate = 0.2
+mns <- NULL
+for (i in 1:1000) {mns <- c(mns, mean(rexp(40, rate = rate)))}
+vars <- NULL
+for (i in 1:1000) {vars <- c(vars, var(rexp(40, rate = rate)))}
+```
+
+The vector mns contains mean values for all simulations, and vector vars contains variance values for all simulations.
+
+## Sample Mean versus Theoretical Mean
+
+We compare the sample mean and theoretical mean. First, we plot a histogram of simulated means.
+
+```{r}
+h1 <- hist(mns, breaks = 25, col = "cadetblue", main = "Distribution of Means", xlab = "Means")
+abline(v = mean(mns), col = "red", lwd = 5)
+```
+
+Above is the histogram of mean values. The red vertical line represents the average of all simulation means. Then we compare its value with the theoretical mean for an exponential distribution.
+
+```{r}
+sim_center <- mean(mns)
+theo_center <- 1/0.2
+```
+
+The simulated value is `r sim_center`. The theoretical value is `r theo_center`. They are pretty close.
+
+## Sample Variance versus Theoretical Variance
+
+We are going to compare the average variances for 1000 simulations with the theoretical variance values for an exponential distribution.
+
+```{r}
+h2 <- hist(vars, breaks = 25, col = "cadetblue", main = "Distribution of variances", xlab = "Vars")
+abline(v = mean(vars), col = "red", lwd = 5)
+```
+
+Above is the histogram of variances values. The red vertical lind represents the average of all simulation variances.
+
+```{r}
+sim_var <- mean(vars)
+theo_var <- (1/rate)^2
+```
+
+For the variance, the simulated value is `r sim_var`, and the theoretical values is `r theo_var`. Again, we can see that these value are pretty close.
+
+## Distribution
+
+We fit the distribution of means with a normal distribution curve.
+
+```{r}
+h3 <- hist(mns, breaks = 25, col = "cadetblue", main = "Distribution of Means", xlab = "Means")
+xfit<-seq(min(mns), max(mns),length = 50)
+yfit<-dnorm(xfit, mean = mean(mns), sd = sd(mns))
+yfit <- yfit*diff(h3$mids[1:2])*length(mns)
+lines(xfit, yfit, col="red", lwd=5)
+```
+
+As can be seen from the figure, the normal distribution fit the curve pretty well. This agrees with the Central Limit Theorm.

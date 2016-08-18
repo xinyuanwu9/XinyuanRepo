@@ -1,0 +1,68 @@
+---
+title: "Statistical Inference Course Project Part II"
+author: "Xinyuan Wu"
+date: "August 17, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+In this part, we are going to use hypothesis test to analyse ToothGrowth data. Our goal is to compare two supply method as well as the effect of dose amount on the length of tooth.
+
+## Data Summary
+
+```{r}
+library(ggplot2)
+library(datasets)
+data <- ToothGrowth
+```
+```{r}
+head(data)
+```
+```{r}
+str(data)
+```
+```{r}
+summary(data)
+```
+
+## Exploratory Analysis
+
+Then we plot a group of boxplots to explore the data.
+
+```{r, tidy = TRUE, tidy.opts=list(width.cutoff = 60)}
+supp_dose <- paste(data$supp, data$dose, sep = " ")
+box_data <- data.frame(data[-c(2, 3)], supp_dose)
+ggplot(data = box_data, aes(x = supp_dose, y = len)) + geom_boxplot(aes(fill = supp_dose)) + xlab("Supplement") +ylab("Tooth length")
+```
+
+From the plot above, we can see the trend that greater amount of dose will results in longer tooth. 
+
+## Hypothesis test
+
+To compare two delivery methods, we do a t-test. The null hypothesis is that these two methods have same effect on tooth length.
+
+```{r}
+data$supp <- as.character(data$supp)
+t.test(data[data$supp == "OJ", 1], data[data$supp == "VC", 1], pair = FALSE, var.equal = TRUE)
+```
+
+The p value is arount 0.06, and the confidence interval contains 0. Therefore we cannot reject the null hypothesis then siginificance level is 5%.
+
+Now we compare effect of amount of dose. The null hypothesis is that the amount of dose have no effect on tooth length.
+
+```{r}
+VC_0.5 <- data[data$supp == "VC" & data$dose == 0.5, 1]
+VC_1.0 <- data[data$supp == "VC" & data$dose == 1.0, 1]
+t.test(VC_0.5, VC_1.0, pair = FALSE, var.equal = TRUE)
+```
+```{r}
+VC_2.0 <- data[data$supp == "VC" & data$dose == 2.0, 1]
+t.test(VC_1.0, VC_2.0, pair = FALSE, var.equal = TRUE)
+```
+
+From the test, both p values are very small. Therefore we can reject the null hypothesis, and conclude that greater amount of dose will lead to longer tooth length.
