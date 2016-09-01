@@ -1,0 +1,112 @@
+---
+title: "An Analysis of MPG vs. Transimission Types"
+author: "Xinyuan Wu"
+date: "August 31, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+
+In this report, we are looking at the mtcars dataset. The data is obtained from 1974 *Motor* *Trend* US magazine. We are going to explore the relationship between transmission types and car's MPG. The questions we are trying to answer are:
+
+* Is an automatic or manual transmission better for MPG?  
+* How much MPG difference is there between transmissions types?
+
+Based on exploratory analysis, t-test and linear regression analysis, we conclude that manual transmission tends to have higher mpg. According to our result, the mean mpg of manual transmission is 7.25 higher than the mean mpg of automatic transmission. However, The difference of the mpg decreases to 1.8 mpg when excluding the influence of other factors.
+
+## Data Processing
+
+First we load the mtcars data. Then we transform the class of variables to factors based on their types and discriptions. After all necessary processing we give an overview of this dataset.
+
+```{r}
+library(ggplot2)
+library(GGally)
+data(mtcars)
+mtcars$am <- factor(mtcars$am, labels = c("Auto", "Manual"))
+mtcars$cyl <- as.factor(mtcars$cyl)
+mtcars$vs <- as.factor(mtcars$vs)
+mtcars$gear <- as.factor(mtcars$gear)
+mtcars$carb <- as.factor(mtcars$carb)
+head(mtcars)
+str(mtcars)
+```
+
+## Exploratory Analysis
+
+Three exploratory graphs are drawn and they are included in appendix. The first figure is a boxplot that summarize the mpg data with respect to transmission types. From the plot we can see that mean and median values for manual transmisison are higher than the values for automatic transimission.
+
+The second figure is a pair graph for all variables, and the third figure is a pair graph for all numeric variables. Based on these graphs, we can observe high correlation between mpg and other numeric variables, like hp and wt. In order to exclude the influence from other variables, we need to select the linear model that best describes the data. 
+
+## Statistical Inference
+
+Before regression analysis, we first perform a t-test on two subsets of data to compare the mpg values for automatic and manual transmissions.
+
+```{r}
+t.test(mpg ~ am, mtcars)
+```
+
+Based on the p-value, we can reject the hypothesis that the mpg between two type of transmissions are the same.
+
+## Regression Analysis
+
+In this section, we first find the best linear model to fit the mpg data. We take advantage of the step function. The code below uses the forward selection algorithm. It will return a model that best combines the variables based on Akaike Information Criterion (AIC).
+
+```{r, results = "hide"}
+null <- lm(mpg ~ 1, data = mtcars)
+full <- lm(mpg ~ ., data = mtcars)
+best <- step(null, scope = list(lower = null, upper = full), direction = "forward", trace = 0)
+```
+
+The model returned by step fuction is: mpg vs. am + wt + cyl + hp. Now we use anova function to verify this selection as we keep adding variables to our linear fit.
+
+```{r}
+fit1 <- lm(mpg ~ am, data = mtcars)
+fit2 <- lm(mpg ~ am + wt, data = mtcars)
+fit3 <- lm(mpg ~ am + wt + cyl, data = mtcars)
+anova(fit1, fit2, fit3, best)
+```
+
+Based on the F-statistic and p-values of the result, the inclusion of wt, cyl and hp appears to be necessary.
+
+```{r}
+summary(best)
+```
+
+This model has a R^2^ value of 0.840, meaning that it explains 84.0% of the variation of the outcome. The result tells us that, by holding other variables (wt, cyl and hp) constant, manual transmission is 1.81 mpg higher than automatic transmission.
+
+The confidence interval of the coefficients are shown below.
+
+```{r}
+confint(best)
+```
+
+Based on these results, we still lacks enough evidence to confirm that the manual transmission has higher mpg than automatic transmission, as the lower bound of 95% confidence interval is below 0.
+
+## Residual Analysis
+
+To examine the pattern of residual, we perform the residual analysis to this model.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(best)
+```
+
+According to the plots, we can see that first, residuals show no pattern when plotting verses fitted values, indicating that residuals appear to be normally distributed, and there is not any highly influential outliers. 
+
+## Apendix
+
+```{r, tidy = TRUE, tidy.opts=list(width.cutoff = 60), cache = TRUE}
+g1 <- ggplot(mtcars, aes(x = am, y = mpg)) + geom_boxplot(aes(fill = am)) 
+g1 <- g1 + xlab("Transimission Type") +ylab("MPG")
+g1 <- g1 + ggtitle("MPG vs. Transimission Types")
+g1
+
+pairs(mtcars, main = "Pair Plots for all variables")
+
+g2 <- ggpairs(mtcars, columns = c(1, 3:7), lower = list(continuous = "smooth"), title = "Pair Plots for Numeric Variables")
+g2
+```
