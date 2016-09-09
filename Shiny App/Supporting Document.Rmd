@@ -1,0 +1,40 @@
+---
+title: "Supporting Document for Predicting a Car's MPG Shiny App"
+author: "Xinyuan Wu"
+date: "September 6, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+
+This report is prepared for Predicting a Car's MPG shiny app. We use mtcars dataset to build our model. The data is obtained from 1974 *Motor* *Trend* US magazine. This shiny app is used to predict mpg value based on given transmission type, number of cylinders, horsepower and weight (1000 lbs).
+
+## Prediction Model
+
+A linear model was selected to fit the mpg data. "am" represents transmission type, "cyl" means number of cylinders, hp represents horsepower, and wt is the weight of a car measured in 1000 lbs. The interaction between transmission type and weight is also considered.
+
+```{r, eval = FALSE}
+fit <- lm(mpg ~ am + cyl + hp + wt + am:wt, data = mtcars)
+```
+
+The mpg can then be estimated using this model.
+
+```{r, eval = FALSE}
+mpgPred <- predict(fit, newdata)
+```
+
+## Running the App
+
+On the left panel, you will select four parameters for predicting the mpg value.
+1. Transmission type.
+2. Number of cynlinders.
+3. Horse power (hp).
+4. Weight (1000 lbs).
+
+Once you finish setting all parameters, click "Submit" button.
+
+On the right panel there is a histogram of all mpg values in the dataset. The predicted value is the x coordinates of the red vertical line.
